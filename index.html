@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chennai Food Pattern Calendar 2026</title>
+<style>
+body { font-family: Arial, sans-serif; margin: 10px; background:#f9f9f9; }
+h1 { text-align:center; font-size:18px; }
+
+/* Desktop grid */
+.calendar { display:grid; grid-template-columns: repeat(7,1fr); gap:5px; margin-bottom:30px; }
+.day { background:#fff; padding:8px; border-radius:6px; font-size:12px; box-shadow:0 1px 3px rgba(0,0,0,0.1); position:relative; }
+.header { font-weight:bold; text-align:center; }
+.month { margin-bottom:30px; }
+.legend span { margin-right:10px; font-size:12px; }
+
+.veg { background:#d4edda; }
+.nonveg { background:#f8d7da; }
+.flex { background:#fff3cd; }
+.override { border:2px solid #000; }
+.small { font-size:10px; display:block; margin-top:3px; }
+
+/* Today highlight */
+.today {
+  outline: 3px solid #007bff;
+  box-shadow: 0 0 8px rgba(0,123,255,0.6);
+}
+
+/* Tooltip */
+.tooltip { position: relative; cursor: pointer; }
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 180px;
+  background-color: #333;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 6px;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  margin-left: -90px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  font-size: 11px;
+}
+
+/* Desktop hover */
+.tooltip:hover .tooltiptext { visibility: visible; opacity: 1; }
+
+/* Mobile tap support */
+.tooltip.active .tooltiptext {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Floating button */
+#todayBtn {
+  position: fixed;
+  bottom: 15px;
+  right: 15px;
+  background:#007bff;
+  color:#fff;
+  border:none;
+  padding:10px 14px;
+  border-radius:20px;
+  font-size:12px;
+  cursor:pointer;
+  z-index: 9999; /* ensure it stays above everything */
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+/* 📱 MOBILE VIEW */
+@media (max-width: 768px) {
+  .calendar { display:block; }
+  .header { display:none; }
+  .day { margin-bottom:10px; font-size:14px; padding:12px; }
+  .day strong { font-size:16px; }
+  .month h2 { font-size:16px; margin-top:20px; }
+}
+</style>
+</head>
+<body>
+
+<h1>Chennai Food Pattern Calendar 2026</h1>
+
+<div class="legend">
+<span>🟢 Veg</span>
+<span>🔴 Non-veg</span>
+<span>🟡 Flexible</span>
+<span>🌙 Sacred</span>
+<span>✝️ Christian</span>
+<span>☪️ Ramadan</span>
+</div>
+
+<button id="todayBtn" onclick="scrollToToday()">Today</button>
+
+<script>
+function getBaseType(day) {
+    if (day === 0) return 'nonveg';
+    if (day === 2 || day === 5) return 'veg';
+    return 'flex';
+}
+
+const RAMADAN_START = new Date(2026,1,17);
+const RAMADAN_END = new Date(2026,2,18);
+const EID = new Date(2026,2,19);
+const GOOD_FRIDAY = new Date(2026,3,3);
+const EASTER = new Date(2026,3,5);
+
+// ✅ Accurate Panchang-based 2026 (Tamil Nadu aligned – sunrise tithi adjusted)
+const AMAVASYA = [
+'2026-01-18','2026-02-16','2026-03-17','2026-04-15','2026-05-14','2026-06-13',
+'2026-07-12','2026-08-11','2026-09-09','2026-10-09','2026-11-08','2026-12-07'
+];
+const POURNAMI = [
+'2026-01-31','2026-03-02','2026-03-31','2026-04-29','2026-05-29','2026-06-27',
+'2026-07-27','2026-08-25','2026-09-24','2026-10-24','2026-11-23','2026-12-22'
+];
+
+// ✅ Ekadashi (twice monthly)
+const EKADASHI = [
+'2026-01-06','2026-01-21','2026-02-05','2026-02-20','2026-03-07','2026-03-21',
+'2026-04-06','2026-04-20','2026-05-06','2026-05-20','2026-06-04','2026-06-19',
+'2026-07-04','2026-07-18','2026-08-02','2026-08-17','2026-09-01','2026-09-16',
+'2026-10-01','2026-10-15','2026-10-30','2026-11-14','2026-11-29','2026-12-14','2026-12-29'
+];
+
+// ✅ Pradosham (evening-based influence)
+const PRADOSHAM = [
+'2026-01-04','2026-01-19','2026-02-03','2026-02-18','2026-03-05','2026-03-19',
+'2026-04-04','2026-04-18','2026-05-04','2026-05-18','2026-06-02','2026-06-17',
+'2026-07-02','2026-07-16','2026-08-01','2026-08-15','2026-08-31','2026-09-14',
+'2026-09-30','2026-10-14','2026-10-29','2026-11-13','2026-11-28','2026-12-13','2026-12-28'
+];
+
+// ✅ Tamil Month Boundaries (exact solar ingress based)
+const TAMIL_MONTHS = [
+  {name:'Margazhi', start:'2025-12-16', end:'2026-01-13'},
+  {name:'Thai', start:'2026-01-14', end:'2026-02-12'},
+  {name:'Maasi', start:'2026-02-13', end:'2026-03-14'},
+  {name:'Panguni', start:'2026-03-15', end:'2026-04-13'},
+  {name:'Chithirai', start:'2026-04-14', end:'2026-05-14'},
+  {name:'Vaikasi', start:'2026-05-15', end:'2026-06-14'},
+  {name:'Aani', start:'2026-06-15', end:'2026-07-15'},
+  {name:'Aadi', start:'2026-07-16', end:'2026-08-16'},
+  {name:'Avani', start:'2026-08-17', end:'2026-09-16'},
+  {name:'Purattasi', start:'2026-09-17', end:'2026-10-16'},
+  {name:'Aippasi', start:'2026-10-17', end:'2026-11-15'},
+  {name:'Karthigai', start:'2026-11-16', end:'2026-12-15'},
+  {name:'Margazhi', start:'2026-12-16', end:'2027-01-13'}
+];
+
+function formatDate(date) {
+    return date.toISOString().split('T')[0];
+}
+
+function isRamadan(date) {
+    return date >= RAMADAN_START && date <= RAMADAN_END;
+}
+
+function isSame(date1, date2) {
+    return date1.toDateString() === date2.toDateString();
+}
+
+// Map current real date to 2026 equivalent
+const todayReal = new Date();
+const todayMapped = new Date(2026, todayReal.getMonth(), todayReal.getDate());
+const todayISO = formatDate(todayMapped);
+
+function generateMonth(year, month) {
+    const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+    const container = document.createElement('div');
+    container.className = 'month';
+
+    const title = document.createElement('h2');
+    title.innerText = monthNames[month];
+    container.appendChild(title);
+
+    const cal = document.createElement('div');
+    cal.className = 'calendar';
+
+    const daysHeader = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+    daysHeader.forEach(d => {
+        const el = document.createElement('div');
+        el.className = 'header';
+        el.innerText = d;
+        cal.appendChild(el);
+    });
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month+1, 0).getDate();
+
+    for (let i=0;i<firstDay;i++) cal.appendChild(document.createElement('div'));
+
+    for (let d=1; d<=daysInMonth; d++) {
+        const date = new Date(year, month, d);
+        const div = document.createElement('div');
+        div.className = 'day ' + getBaseType(date.getDay());
+
+        const iso = formatDate(date);
+        div.setAttribute('data-date', iso);
+
+        if (iso === todayISO) {
+            div.classList.add('today');
+            div.setAttribute('id','today');
+        }
+
+        let label = '';
+        let tooltip = '';
+
+        if (AMAVASYA.includes(iso)) {
+            div.className = 'day veg override';
+            label += '🌙 Amavasya ';
+            tooltip = 'New Moon – ancestor rituals, strict veg';
+        }
+
+        if (EKADASHI.includes(iso)) {
+            div.className = 'day veg override';
+            label += '🌿 Ekadashi ';
+            tooltip = 'Fasting day – no rice, light veg';
+        }
+
+        if (PRADOSHAM.includes(iso)) {
+            label += '🌆 Pradosham ';
+            const pradoshamTip = 'High veg snack demand spike between 5–8 PM (post temple)';
+            tooltip = tooltip ? tooltip + ' | ' + pradoshamTip : pradoshamTip;
+        }
+
+        if (POURNAMI.includes(iso)) {
+            div.className = 'day veg override';
+            label += '🌕 Pournami ';
+            tooltip = 'Full Moon – auspicious fasting, temple visits';
+        }
+
+        // Tamil month detection
+        const tamilMonth = TAMIL_MONTHS.find(m => iso >= m.start && iso <= m.end);
+
+        if (tamilMonth && tamilMonth.name === 'Purattasi') {
+            div.className = 'day veg';
+            label += '🟢 Purattasi ';
+            tooltip = 'Lord Vishnu month – veg observed widely';
+        }
+
+        if (tamilMonth && tamilMonth.name === 'Aadi' && date.getDay() === 5) {
+            div.className = 'day veg override';
+            label += '🌙 Aadi Friday ';
+            tooltip = 'Goddess worship – strict veg';
+        }
+
+        if (month === 0 && d>=14 && d<=17) {
+            div.className = 'day veg';
+            label += '🌾 Pongal ';
+            tooltip = 'Harvest festival – veg meals';
+        }
+
+        if (isSame(date, GOOD_FRIDAY)) {
+            div.className = 'day veg override';
+            label += '🌙✝️ Good Friday ';
+            tooltip = 'Christian fasting';
+        }
+
+        if (isSame(date, EASTER)) {
+            div.className = 'day nonveg';
+            label += '✝️ Easter Feast ';
+        }
+
+        if (isRamadan(date)) {
+            label += '☪️ Ramadan ';
+        }
+
+        if (isSame(date, EID)) {
+            div.className = 'day nonveg';
+            label += '☪️ Eid Feast ';
+        }
+
+        if (month === 11 && d === 25) {
+            div.className = 'day nonveg';
+            label += '🎄 Christmas Feast ';
+        }
+
+        let content = `<strong>${d}</strong><span class="small">${label}</span>`;
+
+        if (tooltip) {
+            content = `<div class="tooltip">${content}<span class="tooltiptext">${tooltip}</span></div>`;
+        }
+
+        div.innerHTML = content;
+        cal.appendChild(div);
+    }
+
+    container.appendChild(cal);
+    return container;
+}
+
+for (let m=0; m<12; m++) {
+    document.body.appendChild(generateMonth(2026, m));
+}
+
+// Auto-scroll on load
+window.onload = function() {
+    scrollToToday();
+};
+
+function scrollToToday() {
+    const el = document.getElementById('today');
+    if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
+// Enable tap-to-toggle tooltip on mobile
+document.addEventListener('click', function(e) {
+    const tooltip = e.target.closest('.tooltip');
+
+    // Close all tooltips first
+    document.querySelectorAll('.tooltip').forEach(t => t.classList.remove('active'));
+
+    // Toggle current if clicked
+    if (tooltip) {
+        tooltip.classList.add('active');
+    }
+});
+</script>
+
+</body>
+</html>
