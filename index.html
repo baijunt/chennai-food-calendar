@@ -81,6 +81,8 @@ h1 { text-align:center; font-size:18px; }
   .month h2 { font-size:16px; margin-top:20px; }
 }
 </style>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#007bff">
 </head>
 <body>
 
@@ -241,13 +243,56 @@ function generateMonth(year, month) {
         if (tamilMonth && tamilMonth.name === 'Purattasi') {
             div.className = 'day veg';
             label += '🟢 Purattasi ';
-            tooltip = 'Lord Vishnu month – veg observed widely';
+            tooltip = 'EXTREME veg shift: city-wide vegetarian behavior';
         }
 
         if (tamilMonth && tamilMonth.name === 'Aadi' && date.getDay() === 5) {
             div.className = 'day veg override';
             label += '🌙 Aadi Friday ';
-            tooltip = 'Goddess worship – strict veg';
+            tooltip = 'High veg fasting participation (Aadi Velli)';
+        }
+
+        // 🛕 Sabarimala Mandala Vratham (Nov 16 – Dec 27)
+        const SABARIMALA_START = new Date(2026,10,16);
+        const SABARIMALA_END = new Date(2026,11,27);
+        if (date >= SABARIMALA_START && date <= SABARIMALA_END) {
+            label += '🛕 Mandala Vratham ';
+            tooltip = tooltip ? tooltip + ' | Very high veg adherence (Sabarimala season)' : 'Very high veg adherence (Sabarimala season)';
+        }
+
+        // 🔱 Thaipusam (Feb 1 + prep week)
+        const THAIPUSAM = new Date(2026,1,1);
+        const THAIPUSAM_PREP_START = new Date(2026,0,25);
+        const THAIPUSAM_PREP_END = new Date(2026,0,31);
+        if (date >= THAIPUSAM_PREP_START && date <= THAIPUSAM_PREP_END) {
+            label += '🔱 Thaipusam Prep ';
+            tooltip = 'Moderate-high veg shift before Thaipusam';
+        }
+        if (isSame(date, THAIPUSAM)) {
+            div.className = 'day veg override';
+            label += '🔱 Thaipusam ';
+            tooltip = 'Festival day – strong veg fasting';
+        }
+
+        // 🔴 Panguni Uthiram (Apr 1 + few days before)
+        const PANGUNI = new Date(2026,3,1);
+        const PANGUNI_PREP_START = new Date(2026,2,28);
+        if (date >= PANGUNI_PREP_START && date < PANGUNI) {
+            label += '🔴 Panguni Prep ';
+            tooltip = 'Moderate veg fasting before Panguni Uthiram';
+        }
+        if (isSame(date, PANGUNI)) {
+            div.className = 'day veg override';
+            label += '🔴 Panguni Uthiram ';
+            tooltip = 'Festival fasting – temporary veg shift';
+        }
+
+        // 🔥 Karthigai Deepam (Dec 6 approx)
+        const KARTHIGAI_DEEPAM = new Date(2026,11,6);
+        if (isSame(date, KARTHIGAI_DEEPAM)) {
+            div.className = 'day veg override';
+            label += '🔥 Karthigai Deepam ';
+            tooltip = 'Moderate-high veg preference and fasting';
         }
 
         if (month === 0 && d>=14 && d<=17) {
@@ -325,5 +370,11 @@ document.addEventListener('click', function(e) {
 });
 </script>
 
+<script>
+// Register service worker for installable PWA
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
+</script>
 </body>
 </html>
